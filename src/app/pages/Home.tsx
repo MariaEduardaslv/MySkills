@@ -1,11 +1,55 @@
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, FlatList } from "react-native";
+import { ScrollView} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {useState} from "react"
+import {use, useEffect, useState} from "react"
+import { Button } from "../components/Button";
+import { SkillCard } from "../components/SkillCard";
+
+interface SkillFormat{
+    id: string
+    name: string
+}
 
 export function Home() {
 
-    const [newSkill, setNewSkill] = useState()
+    const [newSkill, setNewSkill] = useState('')
+    const [mySkills, setMySkills] = useState<SkillFormat[]>([])
+    const [greetings, setGreetings] = useState('')
 
+    // primeira função, segunda dependencias
+    //useEffect(() => {
+     //  console.log("useEffect executado!")
+   // }, [newSkill])
+
+    useEffect(() => {
+        const currentHour = new Date().getHours()
+        //console.log(currentHour)
+        if(currentHour < 12){
+            setGreetings('Good Morning!')
+        }
+        else if (currentHour >=12 && currentHour < 18) {
+            setGreetings('Good Afternoon!')
+        }
+        else {
+           setGreetings('Good Night!') 
+        }
+    }, [])
+
+    function handleAddNewSkill() {
+        const data = {
+            id: String(new Date().getTime()),
+            name: newSkill
+        }
+
+       // setMySkills(oldState => [...oldState, data] )
+        setMySkills([...mySkills, data])
+    }
+    
+    function handleRemoveSkill(id: string) {
+        setMySkills(oldState => oldState.filter(
+            skill => skill.id !== id
+        ))
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -13,24 +57,49 @@ export function Home() {
             <Text style={styles.title}>
                 Welcome, Maria Eduarda
                 </Text>
+                <Text style = {styles.greetings}>
+                  {greetings}
+                </Text>
 
             <TextInput 
             style = {styles.input}
             placeholder="Write your skill"
             placeholderTextColor= '#555'
-            onChangeText={setNewSkill}
+            onChangeText={setNewSkill} //{() => newSkill = newSkill + text}
+           // onChangeText={handleInputChange} // onChangeText = {text => handleInputChange(text)}
             />
             
-            <TouchableOpacity
-             style = {styles.button}
-              activeOpacity={0.5}
-              >
-                <Text
-                 style= {styles.buttonText}>
-                    Add
-                    </Text>
-            </TouchableOpacity>
-            {/* <Text style ={styles.textFooter}>Unicruz</Text> */}
+            <Button title= "Adicionar" onPress={handleAddNewSkill} activeOpacity={0.1}/>
+            
+           {/* {
+                mySkills.map(skill => (
+                   <SkillCard key={skill.id} skill={skill.name} activeOpacity={1}/>   
+                ))
+            } */}
+            
+           {/*<ScrollView>
+            {
+                mySkills.map(skill => (
+                   <SkillCard key={skill.id} skill={skill.name} activeOpacity={1}/>   
+                ))
+            }
+           </ScrollView>      */}
+
+           <FlatList
+            data = {mySkills}
+            keyExtractor = {item => item.id}
+            renderItem = {({item}) => (
+              <SkillCard 
+              key={item.id} 
+              skill={item.name}
+               onPress = {() => handleRemoveSkill(item.id)}
+                activeOpacity={1}
+                />  
+            )}
+           />
+
+            {/* <Text style ={styles.textFooter}>{newSkill}</Text> */}
+
         </SafeAreaView>
     )
 }
@@ -47,6 +116,9 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold'
     },
+    greetings: {
+    color : '#fff'
+    },
     input: {
         backgroundColor: '#1F1E25',
         color: '#fff',
@@ -55,20 +127,8 @@ const styles = StyleSheet.create({
         marginTop: 20,
         borderRadius: 7
     },
-    button: {
-    backgroundColor: '#a370f7',
-    padding: 15,
-    borderRadius:7,
-    alignItems: 'center',
-    marginTop: 17
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: 'bold'
-    },
     textFooter: {
-        alignSelf: 'center',
-        marginBottom: 20
+        justifyContent: "flex-end",
+        color: '#fff'
     }
 })
